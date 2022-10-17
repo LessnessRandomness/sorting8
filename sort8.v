@@ -115,7 +115,6 @@ Definition step8_9 := conditional (GT x5 x3)
                         (assignments ( 
                          assign (num x2) aux :: assign (num x4) (num x2) :: assign (num x0) (num x4) :: assign aux (num x0) ::
                          assign (num x3) aux :: assign (num x5) (num x3) :: assign (num x1) (num x5) :: assign aux (num x1) :: nil))).
-(* swap x3 x5 ++ swap x2 x4 ++ swap x1 x5 ++ swap x0 x4))). *)
 Definition prop9 := GT x5 x3 :: prop6.
 Definition step10_11 := conditional (GT x1 x4)
                          (conditional (GT x0 x4)
@@ -161,87 +160,6 @@ Definition sort8: algorithm := step14_15_16 :: step12_13 :: step10_11 :: step8_9
                                step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil.
 
 Eval compute in count_comparisons_in_algorithm sort8.
-
-
-(* Extraction to graphviz as flowchart *)
-Require Import String.
-Open Scope string.
-
-Definition value_to_string (n: value): string :=
-  match n with
-  | x0 => "x0"
-  | x1 => "x1"
-  | x2 => "x2"
-  | x3 => "x3"
-  | x4 => "x4"
-  | x5 => "x5"
-  | x6 => "x6"
-  | x7 => "x7"
-  end.
-Definition variable_to_string (v: variable): string :=
-  match v with
-  | aux => "t"
-  | num x => value_to_string x
-  end.
-Definition comparison_to_string (c: comparison) :=
-  match c with
-  | GT x y => "[label=""" ++ value_to_string x ++ " > " ++ value_to_string y ++ """, shape=""diamond""]; " end.
-Definition assignment_to_string (a: assignment) :=
-  match a with assign x y => variable_to_string x ++ "=" ++ variable_to_string y end.
-Fixpoint assignment_list_to_string_aux (L: list assignment): string :=
-  match L with
-  | nil => ""
-  | x :: nil => assignment_to_string x
-  | x :: t => assignment_to_string x ++ "; " ++ assignment_list_to_string_aux t
-  end.
-Definition assignment_list_to_string L := "[label=""" ++ assignment_list_to_string_aux (rev L) ++ """];".
-
-Eval compute in assignment_list_to_string (swap x0 x1).
-Eval compute in comparison_to_string (GT x0 x1).
-
-Definition count_assignment_blocks_in_step (s: step): nat.
-Proof.
-  induction s.
-  + exact 1.
-  + exact (IHs1 + IHs2).
-Defined.
-Eval compute in count_assignment_blocks_in_step step14_15_16.
-
-Definition count_comparison_blocks_in_step (s: step): nat.
-Proof.
-  induction s.
-  + exact 0.
-  + exact (1 + IHs1 + IHs2).
-Defined.
-Eval compute in count_comparison_blocks_in_step step14_15_16.
-
-(* http://poleiro.info/posts/2013-03-31-reading-and-writing-numbers-in-coq.html *)
-Definition natToDigit (n : nat) :=
-  match n with
-    | 0 => "0"
-    | 1 => "1"
-    | 2 => "2"
-    | 3 => "3"
-    | 4 => "4"
-    | 5 => "5"
-    | 6 => "6"
-    | 7 => "7"
-    | 8 => "8"
-    | _ => "9"
-  end.
-Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
-  let acc' := (natToDigit (Nat.modulo n 10)) ++ acc in
-  match time with
-    | 0 => acc'
-    | S time' =>
-      match Nat.div n 10 with
-        | 0 => acc'
-        | n' => writeNatAux time' n' acc'
-      end
-  end.
-Definition writeNat (n : nat) : string :=
-  writeNatAux n n "".
-
 
 Ltac T1 after := intros; repeat split; simpl in *; unfold after; clear after;
      repeat destruct Compare_dec.gt_dec; repeat (destruct variable_eq_dec; try congruence); lia.
@@ -327,8 +245,8 @@ Qed.
 Lemma Permutation_Add_cons A :
   forall (a : A) l1 l2 l2', Add a l2 l2' -> Permutation l1 l2 -> Permutation (a :: l1) l2'.
 Proof.
-intros a l1 l2 l2' Hadd HP.
-now etransitivity; [ apply Permutation_cons | apply Permutation_Add, Hadd ].
+  intros a l1 l2 l2' Hadd HP.
+  now etransitivity; [ apply Permutation_cons | apply Permutation_Add, Hadd ].
 Qed.
 
 Ltac permutation_solve :=
@@ -403,3 +321,86 @@ Definition step16_permutation (before: instantation):
 Proof.
   T2 after list_of_values.
 Qed.
+
+
+
+
+
+(* Extraction to graphviz as flowchart *)
+Require Import String.
+Open Scope string.
+
+Definition value_to_string (n: value): string :=
+  match n with
+  | x0 => "x0"
+  | x1 => "x1"
+  | x2 => "x2"
+  | x3 => "x3"
+  | x4 => "x4"
+  | x5 => "x5"
+  | x6 => "x6"
+  | x7 => "x7"
+  end.
+Definition variable_to_string (v: variable): string :=
+  match v with
+  | aux => "t"
+  | num x => value_to_string x
+  end.
+Definition comparison_to_string (c: comparison) :=
+  match c with
+  | GT x y => "[label=""" ++ value_to_string x ++ " > " ++ value_to_string y ++ """, shape=""diamond""]; " end.
+Definition assignment_to_string (a: assignment) :=
+  match a with assign x y => variable_to_string x ++ "=" ++ variable_to_string y end.
+Fixpoint assignment_list_to_string_aux (L: list assignment): string :=
+  match L with
+  | nil => ""
+  | x :: nil => assignment_to_string x
+  | x :: t => assignment_to_string x ++ "; " ++ assignment_list_to_string_aux t
+  end.
+Definition assignment_list_to_string L := "[label=""" ++ assignment_list_to_string_aux (rev L) ++ """];".
+
+Eval compute in assignment_list_to_string (swap x0 x1).
+Eval compute in comparison_to_string (GT x0 x1).
+
+Definition count_assignment_blocks_in_step (s: step): nat.
+Proof.
+  induction s.
+  + exact 1.
+  + exact (IHs1 + IHs2).
+Defined.
+Eval compute in count_assignment_blocks_in_step step14_15_16.
+
+Definition count_comparison_blocks_in_step (s: step): nat.
+Proof.
+  induction s.
+  + exact 0.
+  + exact (1 + IHs1 + IHs2).
+Defined.
+Eval compute in count_comparison_blocks_in_step step14_15_16.
+
+(* http://poleiro.info/posts/2013-03-31-reading-and-writing-numbers-in-coq.html *)
+Definition natToDigit (n : nat) :=
+  match n with
+    | 0 => "0"
+    | 1 => "1"
+    | 2 => "2"
+    | 3 => "3"
+    | 4 => "4"
+    | 5 => "5"
+    | 6 => "6"
+    | 7 => "7"
+    | 8 => "8"
+    | _ => "9"
+  end.
+Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
+  let acc' := (natToDigit (Nat.modulo n 10)) ++ acc in
+  match time with
+    | 0 => acc'
+    | S time' =>
+      match Nat.div n 10 with
+        | 0 => acc'
+        | n' => writeNatAux time' n' acc'
+      end
+  end.
+Definition writeNat (n : nat) : string :=
+  writeNatAux n n "".
