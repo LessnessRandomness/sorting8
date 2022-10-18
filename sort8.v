@@ -322,7 +322,63 @@ Proof.
   T2 after list_of_values.
 Qed.
 
+Theorem algorithm_cons (s: step) (a: algorithm) (before: instantation):
+  run_algorithm before (s :: a) = run_algorithm (run_algorithm before a) (s :: nil).
+Proof.
+  simpl. reflexivity.
+Qed.
 
+Theorem algorithm_permutation (before: instantation):
+  let after := run_algorithm before sort8 in
+  Permutation (list_of_values before) (list_of_values after).
+Proof.
+  unfold sort8.
+  assert (Permutation
+    (list_of_values (run_algorithm before (step12_13 :: step10_11 :: step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step14_15_16 :: step12_13 :: step10_11 :: step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step14_15_16). apply step16_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step10_11 :: step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step12_13 :: step10_11 :: step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step12_13). apply step13_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step10_11 :: step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step10_11). apply step11_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step8_9 :: step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step8_9). apply step9_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step7 :: step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step7). apply step7_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step5 :: step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step6 :: step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step6). apply step6_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step4 :: step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step5 :: step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step5). apply step5_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step3 :: step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step4 :: step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step4). apply step4_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step2 :: step1 :: nil)))
+    (list_of_values (run_algorithm before (step3 :: step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step3). apply step3_permutation. }
+  assert (Permutation
+    (list_of_values (run_algorithm before (step1 :: nil)))
+    (list_of_values (run_algorithm before (step2 :: step1 :: nil)))).
+  { rewrite (algorithm_cons step2). apply step2_permutation. }
+  assert (Permutation
+    (list_of_values before)
+    (list_of_values (run_algorithm before (step1 :: nil)))).
+  { apply step1_permutation. }
+  repeat (eapply perm_trans; eauto).
+Qed.
 
 
 
