@@ -381,6 +381,69 @@ Proof.
 Qed.
 
 
+Definition equivalent (i1 i2: instantation) :=
+  forall x y, i1 x <= i1 y <-> i2 x <= i2 y.
+
+Fixpoint distinct (L: list instantation) :=
+  match L with
+  | x :: (y :: t) as t0 => ~ equivalent x y /\ distinct t0
+  | _ => True
+  end.
+
+Fixpoint factorial n :=
+  match n with
+  | O => 1
+  | S m => S m * factorial m
+  end.
+
+Theorem run_algorithm_nil (i: instantation) : forall x, run_algorithm i nil x = i x.
+Proof.
+  intros. simpl. auto.
+Qed.
+
+Theorem run_step_cons (i: instantation) (a: assignment) (L: list assignment):
+  run_step i (assignments (a :: L)) = run_assignment (run_step i (assignments L)) a.
+Proof.
+  simpl. auto.
+Qed.
+
+Theorem equivalent_after_assignment (i1 i2: instantation) (H: equivalent i1 i2) (a: assignment):
+  equivalent (run_assignment i1 a) (run_assignment i2 a).
+Proof.
+  unfold equivalent in *. intros. destruct a.
+  destruct v, v0; simpl; repeat (destruct variable_eq_dec); apply H.
+Qed.
+
+Theorem equivalent_after_step (i1 i2: instantation) (H: equivalent i1 i2) (s: step):
+  equivalent (run_step i1 s) (run_step i2 s).
+Proof.
+  induction s.
+  + induction L.
+    - simpl. auto.
+    - intros. repeat rewrite run_step_cons. apply equivalent_after_assignment; auto.
+  + intros. simpl. destruct c. unfold equivalent in *. intros. repeat (destruct Compare_dec.gt_dec); eauto.
+    - pose (H (num more) (num less)). lia.
+    - pose (H (num more) (num less)). lia.
+Qed.
+
+Theorem equivalent_after_algorithm (i1 i2: instantation) (H: equivalent i1 i2) (a: algorithm):
+  equivalent (run_algorithm i1 a) (run_algorithm i2 a).
+Proof.
+  unfold equivalent in *.
+  + induction a; intros; simpl in *.
+    - apply H.
+    - apply equivalent_after_step; eauto.
+Qed.
+
+
+(* ?? Something about distinct instantations being factorial 8 ?? *)
+Theorem max_number_of_distinct_instantations (L: list instantation):
+  distinct L -> length L <= factorial 8.
+Proof.
+Admitted.
+
+
+
 
 (* Extraction to graphviz as flowchart *)
 Require Import String.
